@@ -2,21 +2,23 @@ import socket
 import sys
 
 
-# TODO: make it for both ; open host and
-# local host/machine : read args and depend on that
+def usage():
+    print("usage: \n python portscan.py local => for local port scan \n \
+python portscan.py <website.com> => for scanning the site\n")
 
 
 def portScan(host, startPort, endPort):
+    openports = 0
     for port in range(startPort, endPort + 1):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
-
         try:
             result = sock.connect_ex((host, port))
             if result == 0:
                 service = socket.getservbyport(port, 'tcp')
+                openports += 1
+                print(f"host: {host}")
                 print(f"Port: {port}")
-                # TODO:here why the protocol is tcp what if udp
                 print("Protocol: TCP")
                 print(f"Service: {service}")
                 print("Status: Open \n")
@@ -26,6 +28,7 @@ def portScan(host, startPort, endPort):
 
         finally:
             sock.close()
+    return openports
 
 
 def getLocalIP():
@@ -42,15 +45,17 @@ def getLocalIP():
 
 localIP = getLocalIP()
 
-# Scan the local machine's ports
 startPort = 1
 endPort = 100
 
-portScan(localIP, startPort, endPort)
-
-host = 'website.com'
-startPort = 1
-endPort = 100
-
-#portScan(host, startPort, endPort)
-
+if len(sys.argv) <= 1:
+    usage()
+else:
+    if sys.argv[1] == "local":
+        open_ports = portScan(localIP, startPort, endPort)
+        print(f"{open_ports} ports open and {100 - open_ports} ports closed")
+    else:
+        host = sys.argv[1]
+        print(f"scanning {host} started wait a minute...\n")
+        open_ports = portScan(sys.argv[1], startPort, endPort)
+        print(f"{open_ports} ports open and {100 - open_ports} ports closed")
